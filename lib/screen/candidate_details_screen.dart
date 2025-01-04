@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'database/database_helper.dart';
-import 'dialogs/add_detail_dialog.dart';
+import '../../database/database_helper.dart';
+import '../dialogs/add_detail_dialog.dart';
 
 class CandidateDetails extends StatefulWidget {
   final int candidateId;

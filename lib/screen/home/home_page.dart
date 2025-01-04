@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '../database/database_helper.dart';
-import '../../lib/dialogs/app_drawer.dart';
-import 'candidate_dialogs.dart';
-import '../../lib/candidate_details_screen.dart';
+import '../../database/database_helper.dart';
+import '../../dialogs/app_drawer.dart';
+import '../../dialogs/candidate_dialogs.dart';
+import '../../screen/candidate_details_screen.dart';
+// import '../home/home_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

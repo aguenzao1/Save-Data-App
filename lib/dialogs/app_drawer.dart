@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import '../database/database_helper.dart';
-import '../../screen/home/candidate_details';
-import '../main.dart';
+import '../screen/home/home_page.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
