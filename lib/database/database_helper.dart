@@ -3,8 +3,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'dart:async';
 
-
-
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
   static Database? _database;
@@ -30,24 +28,15 @@ class DatabaseHelper {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL
         )''');
+
         await db.execute('''
-        CREATE TABLE candidate_details (
+        CREATE TABLE candidate_details(
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           candidate_id INTEGER NOT NULL,
           key TEXT NOT NULL,
           value TEXT NOT NULL,
-          FOREIGN KEY (candidate_id) REFENCES candidates (id)
-        )
-      ''');
-
-        await db.execute(''' CREATE TABLE people (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    candidateId INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    role TEXT,
-    contact TEXT,
-    FOREIGN KEY (candidateId) REFERENCES candidates (id)
-    ) ''');
+          FOREIGN KEY (candidate_id) REFERENCES candidates (id)
+        )''');
       },
     );
   }
@@ -72,23 +61,17 @@ class DatabaseHelper {
     });
   }
 
-   Future<List<Map<String, dynamic>>> fetchCandidateDetails(int candidateId) async {
+  Future<List<Map<String, dynamic>>> fetchCandidateDetails(
+      int candidateId) async {
     final db = await database;
-    return await db.query(
-      'candidate_details',
-      where: 'candidate_id = ?', 
-      whereArgs: [candidateId]
-    );
+    return await db.query('candidate_details',
+        where: 'candidate_id = ?', whereArgs: [candidateId]);
   }
 
   Future<int> deleteCandidate(int id) async {
-    final db = await instance.database;
-    await db.delete('people', where: 'candidateId = ?', whereArgs: [id]);
-    return await db.delete('cnadidates', where: 'id = ?', whereArgs: [id]);
-  }
-
-  Future<int> deletePerson(int id) async {
-    final db = await instance.database;
-    return await db.delete('people', where: 'id = ?', whereArgs: [id]);
+    final db = await database;
+    await db.delete('candidate_details',
+        where: 'candidate_id = ?', whereArgs: [id]);
+    return await db.delete('candidates', where: 'id = ?', whereArgs: [id]);
   }
 }
