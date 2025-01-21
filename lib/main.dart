@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:device_preview/device_preview.dart';
 import '../screen/home/home_page.dart';
 
 void main() {
-  runApp(
-    DevicePreview(
-      enabled: true,
-      builder: (context) => const MyApp(),
-    ),
-  );
+     WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
