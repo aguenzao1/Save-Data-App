@@ -3,8 +3,13 @@ import '../../database/database.dart' as db;
 
 class CaidatDetailsScreen extends StatefulWidget {
   final int candidateId;
+  final bool isDarkMode;
 
-  const CaidatDetailsScreen({super.key, required this.candidateId});
+  const CaidatDetailsScreen({
+    super.key,
+    required this.candidateId,
+    required this.isDarkMode,
+  });
 
   @override
   _CaidatDetailsScreenState createState() => _CaidatDetailsScreenState();
@@ -13,6 +18,8 @@ class CaidatDetailsScreen extends StatefulWidget {
 class _CaidatDetailsScreenState extends State<CaidatDetailsScreen> {
   late db.AppDatabase database;
   List<db.CandidateDetail> details = [];
+  String searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -23,6 +30,7 @@ class _CaidatDetailsScreenState extends State<CaidatDetailsScreen> {
 
   @override
   void dispose() {
+    _searchController.dispose();
     database.close();
     super.dispose();
   }
@@ -41,10 +49,34 @@ class _CaidatDetailsScreenState extends State<CaidatDetailsScreen> {
     await _loadDetails();
   }
 
+  Future<void> _updateDetails(List<db.CandidateDetail> oldDetails, Map<String, String> newData) async {
+    for (var detail in oldDetails) {
+      await database.deleteCandidateDetail(detail.id);
+    }
+    await _addDetail(newData);
+  }
+
+  List<List<db.CandidateDetail>> _getFilteredAndGroupedDetails() {
+    final List<List<db.CandidateDetail>> groupedDetails = [];
+    for (var i = 0; i < details.length; i += 5) {
+      if (i + 5 <= details.length) {
+        groupedDetails.add(details.sublist(i, i + 5));
+      }
+    }
+
+    if (searchQuery.isEmpty) {
+      return groupedDetails;
+    }
+
+    return groupedDetails.where((group) {
+      return group.any((detail) => detail.value.toLowerCase().contains(searchQuery.toLowerCase()));
+    }).toList();
+  }
+
   void _showDetailDialog(List<db.CandidateDetail> personDetails) {
-    final Map<String, String> details = {};
+    final Map<String, String> detailMap = {};
     for (var detail in personDetails) {
-      details[detail.key] = detail.value;
+      detailMap[detail.key] = detail.value;
     }
 
     showDialog(
@@ -54,27 +86,26 @@ class _CaidatDetailsScreenState extends State<CaidatDetailsScreen> {
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ListTile(
                 title: const Text('Name'),
-                subtitle: Text(details['name'] ?? ''),
+                subtitle: Text(detailMap['name'] ?? ''),
               ),
               ListTile(
                 title: const Text('Number'),
-                subtitle: Text(details['number'] ?? ''),
+                subtitle: Text(detailMap['number'] ?? ''),
               ),
               ListTile(
                 title: const Text('ID Card'),
-                subtitle: Text(details['idCard'] ?? ''),
+                subtitle: Text(detailMap['idCard'] ?? ''),
               ),
               ListTile(
                 title: const Text('Place'),
-                subtitle: Text(details['place'] ?? ''),
+                subtitle: Text(detailMap['place'] ?? ''),
               ),
               ListTile(
                 title: const Text('Description'),
-                subtitle: Text(details['description'] ?? ''),
+                subtitle: Text(detailMap['description'] ?? ''),
               ),
             ],
           ),
@@ -109,7 +140,6 @@ class _CaidatDetailsScreenState extends State<CaidatDetailsScreen> {
         title: Text(personDetails == null ? 'Add New Person' : 'Edit Person'),
         content: SingleChildScrollView(
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameController,
@@ -151,11 +181,10 @@ class _CaidatDetailsScreenState extends State<CaidatDetailsScreen> {
                   'place': placeController.text,
                   'description': descriptionController.text,
                 };
-                
+
                 if (personDetails == null) {
                   _addDetail(detailData);
                 } else {
-                  // Delete old details and add new ones
                   _updateDetails(personDetails, detailData);
                 }
                 Navigator.pop(context);
@@ -168,38 +197,64 @@ class _CaidatDetailsScreenState extends State<CaidatDetailsScreen> {
     );
   }
 
-  Future<void> _updateDetails(List<db.CandidateDetail> oldDetails, Map<String, String> newData) async {
-    // Delete old details
-    for (var detail in oldDetails) {
-      await database.deleteCandidateDetail(detail.id);
-    }
-    // Add new details
-    await _addDetail(newData);
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Group details by person (every 5 details belong to one person)
-    final List<List<db.CandidateDetail>> groupedDetails = [];
-    for (var i = 0; i < details.length; i += 5) {
-      if (i + 5 <= details.length) {
-        groupedDetails.add(details.sublist(i, i + 5));
-      }
-    }
+    final filteredGroups = _getFilteredAndGroupedDetails();
 
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
         title: const Text('People in Caidat'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search people...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() {
+                            searchQuery = '';
+                          });
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value;
+                });
+              },
+            ),
+          ),
+        ),
       ),
-      body: groupedDetails.isEmpty
-          ? const Center(child: Text('No people added yet'))
+      body: filteredGroups.isEmpty
+          ? Center(
+              child: Text(
+                searchQuery.isEmpty
+                    ? 'No people added yet'
+                    : 'No results found for "$searchQuery"',
+              ),
+            )
           : ListView.builder(
-              itemCount: groupedDetails.length,
+              itemCount: filteredGroups.length,
               itemBuilder: (context, index) {
-                final personDetails = groupedDetails[index];
-                final name = personDetails.firstWhere((d) => d.key == 'name', orElse: () => const db.CandidateDetail(id: 0, candidateId: 0, key: 'name', value: 'Unknown')).value;
-                
+                final personDetails = filteredGroups[index];
+                final name = personDetails.firstWhere(
+                  (d) => d.key == 'name',
+                  orElse: () => db.CandidateDetail(id: 0, candidateId: 0, key: 'name', value: 'Unknown'),
+                ).value;
+
                 return Card(
                   margin: const EdgeInsets.all(8.0),
                   child: ListTile(

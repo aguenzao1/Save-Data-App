@@ -4,7 +4,14 @@ import '../candidate_details/candidate_details_screen.dart';
 import '../../dialogs/app_drawer.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final Function toggleTheme;
+  final bool isDarkMode;
+
+  const HomePage({
+    super.key,
+    required this.toggleTheme,
+    required this.isDarkMode,
+  });
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -91,14 +98,15 @@ class _HomePageState extends State<HomePage> {
             },
           );
         },
-        backgroundColor: Colors.blue,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add),
       ),
-      drawer: const AppDrawer(),
+      drawer: AppDrawer(
+        toggleTheme: widget.toggleTheme,
+        isDarkMode: widget.isDarkMode,
+      ),
       appBar: AppBar(
         elevation: 2.0,
         centerTitle: true,
-        backgroundColor: Colors.grey[300],
         title: const Text(
           'CAIDAT MANAGER',
           textAlign: TextAlign.center,
@@ -107,11 +115,15 @@ class _HomePageState extends State<HomePage> {
             fontWeight: FontWeight.bold,
             letterSpacing: 1.0,
             fontSize: 19.0,
-            color: Colors.black,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(widget.isDarkMode ? Icons.light_mode : Icons.dark_mode),
+            onPressed: () => widget.toggleTheme(),
+          ),
+        ],
       ),
-      backgroundColor: Colors.grey[200],
       body: ListView.builder(
         itemCount: caidats.length,
         itemBuilder: (context, index) {
@@ -128,6 +140,7 @@ class _HomePageState extends State<HomePage> {
                   MaterialPageRoute(
                     builder: (context) => CaidatDetailsScreen(
                       candidateId: caidat.id,
+                      isDarkMode: widget.isDarkMode,
                     ),
                   ),
                 );
@@ -136,7 +149,7 @@ class _HomePageState extends State<HomePage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.blue),
+                    icon: const Icon(Icons.edit),
                     onPressed: () {
                       final editController = TextEditingController(text: caidat.name);
                       showDialog(
