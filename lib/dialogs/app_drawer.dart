@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../screen/home/home_page.dart';
+import '../screens/home/home_page.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -27,7 +27,7 @@ class AppDrawer extends StatelessWidget {
                     ),
                     const SizedBox(height: 10.0),
                     const Text(
-                      "DATA SAVER",
+                      "CAIDAT MANAGER",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 12.0,

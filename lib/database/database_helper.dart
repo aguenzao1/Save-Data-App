@@ -1,7 +1,4 @@
-// import 'package:flutter/material.dart';
-// import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import 'dart:async';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
@@ -28,7 +25,7 @@ class DatabaseHelper {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL
         )''');
-
+        
         await db.execute('''
         CREATE TABLE candidate_details(
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,8 +48,7 @@ class DatabaseHelper {
     return await db.query('candidates');
   }
 
-  Future<int> addCandidateDetails(
-      int candidateId, String key, String value) async {
+  Future<int> addCandidateDetails(int candidateId, String key, String value) async {
     final db = await database;
     return await db.insert('candidate_details', {
       'candidate_id': candidateId,
@@ -61,17 +57,18 @@ class DatabaseHelper {
     });
   }
 
-  Future<List<Map<String, dynamic>>> fetchCandidateDetails(
-      int candidateId) async {
+  Future<List<Map<String, dynamic>>> fetchCandidateDetails(int candidateId) async {
     final db = await database;
-    return await db.query('candidate_details',
-        where: 'candidate_id = ?', whereArgs: [candidateId]);
+    return await db.query(
+      'candidate_details',
+      where: 'candidate_id = ?',
+      whereArgs: [candidateId]
+    );
   }
 
   Future<int> deleteCandidate(int id) async {
     final db = await database;
-    await db.delete('candidate_details',
-        where: 'candidate_id = ?', whereArgs: [id]);
+    await db.delete('candidate_details', where: 'candidate_id = ?', whereArgs: [id]);
     return await db.delete('candidates', where: 'id = ?', whereArgs: [id]);
   }
 }
