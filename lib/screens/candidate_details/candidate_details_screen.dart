@@ -51,7 +51,7 @@ class _CaidatDetailsScreenState extends State<CaidatDetailsScreen> {
 
   Future<void> _updateDetails(List<db.CandidateDetail> oldDetails, Map<String, String> newData) async {
     for (var detail in oldDetails) {
-      await database.deleteCandidateDetail(detail.id);
+      await database.deleteCandidateDetail(detail.id, widget.candidateId, detail.key);
     }
     await _addDetail(newData);
   }
@@ -252,7 +252,7 @@ class _CaidatDetailsScreenState extends State<CaidatDetailsScreen> {
                 final personDetails = filteredGroups[index];
                 final name = personDetails.firstWhere(
                   (d) => d.key == 'name',
-                  orElse: () => db.CandidateDetail(id: 0, candidateId: 0, key: 'name', value: 'Unknown'),
+                  orElse: () => const db.CandidateDetail(id: 0, candidateId: 0, key: 'name', value: 'Unknown'),
                 ).value;
 
                 return Card(
@@ -271,7 +271,7 @@ class _CaidatDetailsScreenState extends State<CaidatDetailsScreen> {
                           icon: const Icon(Icons.delete, color: Colors.red),
                           onPressed: () async {
                             for (var detail in personDetails) {
-                              await database.deleteCandidateDetail(detail.id);
+                              await database.deleteCandidateDetail(detail.id, widget.candidateId, detail.key);
                             }
                             _loadDetails();
                           },

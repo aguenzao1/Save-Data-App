@@ -23,8 +23,14 @@ class $CandidatesTable extends Candidates
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
       'name', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _passwordMeta =
+      const VerificationMeta('password');
   @override
-  List<GeneratedColumn> get $columns => [id, name];
+  late final GeneratedColumn<String> password = GeneratedColumn<String>(
+      'password', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [id, name, password];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -44,6 +50,12 @@ class $CandidatesTable extends Candidates
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
+    if (data.containsKey('password')) {
+      context.handle(_passwordMeta,
+          password.isAcceptableOrUnknown(data['password']!, _passwordMeta));
+    } else if (isInserting) {
+      context.missing(_passwordMeta);
+    }
     return context;
   }
 
@@ -57,6 +69,8 @@ class $CandidatesTable extends Candidates
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       name: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      password: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}password'])!,
     );
   }
 
@@ -69,12 +83,15 @@ class $CandidatesTable extends Candidates
 class Candidate extends DataClass implements Insertable<Candidate> {
   final int id;
   final String name;
-  const Candidate({required this.id, required this.name});
+  final String password;
+  const Candidate(
+      {required this.id, required this.name, required this.password});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
+    map['password'] = Variable<String>(password);
     return map;
   }
 
@@ -82,6 +99,7 @@ class Candidate extends DataClass implements Insertable<Candidate> {
     return CandidatesCompanion(
       id: Value(id),
       name: Value(name),
+      password: Value(password),
     );
   }
 
@@ -91,6 +109,7 @@ class Candidate extends DataClass implements Insertable<Candidate> {
     return Candidate(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
+      password: serializer.fromJson<String>(json['password']),
     );
   }
   @override
@@ -99,17 +118,20 @@ class Candidate extends DataClass implements Insertable<Candidate> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
+      'password': serializer.toJson<String>(password),
     };
   }
 
-  Candidate copyWith({int? id, String? name}) => Candidate(
+  Candidate copyWith({int? id, String? name, String? password}) => Candidate(
         id: id ?? this.id,
         name: name ?? this.name,
+        password: password ?? this.password,
       );
   Candidate copyWithCompanion(CandidatesCompanion data) {
     return Candidate(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
+      password: data.password.present ? data.password.value : this.password,
     );
   }
 
@@ -117,44 +139,56 @@ class Candidate extends DataClass implements Insertable<Candidate> {
   String toString() {
     return (StringBuffer('Candidate(')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('password: $password')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name);
+  int get hashCode => Object.hash(id, name, password);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Candidate && other.id == this.id && other.name == this.name);
+      (other is Candidate &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.password == this.password);
 }
 
 class CandidatesCompanion extends UpdateCompanion<Candidate> {
   final Value<int> id;
   final Value<String> name;
+  final Value<String> password;
   const CandidatesCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
+    this.password = const Value.absent(),
   });
   CandidatesCompanion.insert({
     this.id = const Value.absent(),
     required String name,
-  }) : name = Value(name);
+    required String password,
+  })  : name = Value(name),
+        password = Value(password);
   static Insertable<Candidate> custom({
     Expression<int>? id,
     Expression<String>? name,
+    Expression<String>? password,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
+      if (password != null) 'password': password,
     });
   }
 
-  CandidatesCompanion copyWith({Value<int>? id, Value<String>? name}) {
+  CandidatesCompanion copyWith(
+      {Value<int>? id, Value<String>? name, Value<String>? password}) {
     return CandidatesCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
+      password: password ?? this.password,
     );
   }
 
@@ -167,6 +201,9 @@ class CandidatesCompanion extends UpdateCompanion<Candidate> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (password.present) {
+      map['password'] = Variable<String>(password.value);
+    }
     return map;
   }
 
@@ -174,7 +211,8 @@ class CandidatesCompanion extends UpdateCompanion<Candidate> {
   String toString() {
     return (StringBuffer('CandidatesCompanion(')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('password: $password')
           ..write(')'))
         .toString();
   }
@@ -459,10 +497,12 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 typedef $$CandidatesTableCreateCompanionBuilder = CandidatesCompanion Function({
   Value<int> id,
   required String name,
+  required String password,
 });
 typedef $$CandidatesTableUpdateCompanionBuilder = CandidatesCompanion Function({
   Value<int> id,
   Value<String> name,
+  Value<String> password,
 });
 
 final class $$CandidatesTableReferences
@@ -502,6 +542,9 @@ class $$CandidatesTableFilterComposer
   ColumnFilters<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get password => $composableBuilder(
+      column: $table.password, builder: (column) => ColumnFilters(column));
+
   Expression<bool> candidateDetailsRefs(
       Expression<bool> Function($$CandidateDetailsTableFilterComposer f) f) {
     final $$CandidateDetailsTableFilterComposer composer = $composerBuilder(
@@ -538,6 +581,9 @@ class $$CandidatesTableOrderingComposer
 
   ColumnOrderings<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get password => $composableBuilder(
+      column: $table.password, builder: (column) => ColumnOrderings(column));
 }
 
 class $$CandidatesTableAnnotationComposer
@@ -554,6 +600,9 @@ class $$CandidatesTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get password =>
+      $composableBuilder(column: $table.password, builder: (column) => column);
 
   Expression<T> candidateDetailsRefs<T extends Object>(
       Expression<T> Function($$CandidateDetailsTableAnnotationComposer a) f) {
@@ -602,18 +651,22 @@ class $$CandidatesTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<String> name = const Value.absent(),
+            Value<String> password = const Value.absent(),
           }) =>
               CandidatesCompanion(
             id: id,
             name: name,
+            password: password,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required String name,
+            required String password,
           }) =>
               CandidatesCompanion.insert(
             id: id,
             name: name,
+            password: password,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
